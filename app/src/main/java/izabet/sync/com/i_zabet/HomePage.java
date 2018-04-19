@@ -31,18 +31,23 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.widget.Switch;
 
 
-
-
-public class HomePage extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class HomePage extends AppCompatActivity {
 
     SharedPreferences prefs = null;
-    private String android_id = Secure.getString(this.getContentResolver(),
-            Secure.ANDROID_ID);
-   private String url ="http://162.243.33.136/izabet/index.php?tab=requestAccount&device_id="+android_id+"&type=2";
-   private String salt;
-   private int id ;
+    private String android_id = Secure.getString(this.getContentResolver(), Secure.ANDROID_ID);
+    private String url ="http://162.243.33.136/izabet/index.php?tab=requestAccount&device_id="+android_id+"&type=2";
+    private String url2 = "";
+    private String salt;
+
+    private int id ;
+    private Switch switch1 ;
+    private boolean switchOnOff ;
+    public static final String SHARED_PREFS="sharedPrefs";
+    public static final String TEXT = "text";
+    public static final String SWITCH1= "switch1";
     RequestQueue rq = Volley.newRequestQueue(this);
 
     @Override
@@ -62,48 +67,21 @@ public class HomePage extends AppCompatActivity implements NavigationView.OnNavi
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
 
 
-        // displaySelectedScreen(R.id.activity_home_page);
+
+
 
         sendHttpRequest();
 
+        saveData(TEXT,salt );
+
 
     }
 
 
-    private void displaySelectedScreen(int id)
-    {
-        Fragment fragment = null;
 
-        switch(id)
-        {
-           // case R.id.activity_ticket :
-              //  fragment = new Ticket();
-             //   break;
-
-           // case R.id.activity_my_list :
-              //  fragment = new MyList();
-
-          //  case R.id.activity_info:
-              //  fragment = new Info();
-
-
-//                if (fragment != null)
-//                {
-//                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-//                  //  ft.replace(R.id.activity_home_page, fragment);
-//                    ft.commit();
-//
-//                }
-//                DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout) ;
-//                drawer.closeDrawer(GravityCompat.START);
-
-        }
-    }
 
 
     @Override
@@ -163,14 +141,57 @@ public class HomePage extends AppCompatActivity implements NavigationView.OnNavi
 
         rq.add(jor);
     }
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item)
-    {
-        int id = item.getItemId();
 
-        displaySelectedScreen(id);
-        return true ;
+
+    public void secondSendHttpRequest(){
+        JsonObjectRequest jor = new JsonObjectRequest( com.android.volley.Request.Method.GET, url2, null, new com.android.volley.Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    salt = response.getString("salt");
+                    id = response.getInt("id");
+
+
+                }
+
+                catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+
+            }
+        }) ;
+
+
+        rq.add(jor);
     }
+
+
+    public void saveData(String constantName, String value)
+    {
+
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putString(constantName, value);
+        editor.putBoolean(SWITCH1, switch1.isChecked());
+
+    }
+
+    public void loadData()
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        salt = sharedPreferences.getString(TEXT,"" );
+        switchOnOff = sharedPreferences.getBoolean(SWITCH1, false);
+
+    }
+
 
     }
 
